@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Instant Messenger</string>
+
+    <string name="action_messaging">Messaging</string>
+    <string name="action_conversations">Conversations</string>
+    <string name="action_contacts">Contacts</string>
+    <string name="title_activity_messaging">MessagingActivity</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
+</resources>
