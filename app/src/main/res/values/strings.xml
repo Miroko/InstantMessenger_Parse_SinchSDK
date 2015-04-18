@@ -6,7 +6,15 @@
     <string name="action_contacts">Contacts</string>
     <string name="title_activity_messaging">MessagingActivity</string>
 
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+
+    // Menu
+    <string name="action_signout">Sign out</string>
+
+    // Login
+    <string name="login_button">Login</string>
+    <string name="register_button">Register</string>
+    <string name="login_field_title">Login</string>
+    <string name="password_field_title">Password</string>
 
 </resources>
