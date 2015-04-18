@@ -7,6 +7,8 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.parse.LogOutCallback;
+import com.parse.ParseException;
 import com.parse.ParseUser;
 
 public class MainActivity extends ActionBarActivity implements ContactsFragment.Listener, ConversationsFragment.Listener {
@@ -52,8 +54,12 @@ public class MainActivity extends ActionBarActivity implements ContactsFragment.
             switchToConversations();
             return true;
         }
-        else if(id == R.id.actions_contacts){
+        else if(id == R.id.action_contacts){
             switchToContacts();
+            return true;
+        }
+        else if(id == R.id.action_signout){
+            logOut();
             return true;
         }
 
@@ -64,6 +70,19 @@ public class MainActivity extends ActionBarActivity implements ContactsFragment.
     public void onDestroy() {
         stopService(new Intent(this, SinchService.class));
         super.onDestroy();
+    }
+
+    private void logOut(){
+        LogOutCallback logOutCallback = new LogOutCallback() {
+            @Override
+            public void done(ParseException e) {
+                Intent login = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(login);
+
+                finish();
+            }
+        };
+        ParseUser.logOutInBackground(logOutCallback);
     }
 
     public void switchToConversations(){
