@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.parse.LogInCallback;
@@ -23,6 +24,7 @@ public class LoginActivity extends Activity {
     EditText password;
     Button register;
     Button login;
+	ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +52,9 @@ public class LoginActivity extends Activity {
                 login();
             }
         });
+	    progressBar = (ProgressBar) findViewById(R.id.progressBar);
+	    progressBar.setVisibility(View.INVISIBLE);
+
     }
 
     private void initializeParse(){
@@ -104,6 +109,7 @@ public class LoginActivity extends Activity {
         password.setEnabled(false);
         register.setEnabled(false);
         login.setEnabled(false);
+	    progressBar.setVisibility(View.VISIBLE);
     }
 
     private void releaseUI(){
@@ -111,5 +117,6 @@ public class LoginActivity extends Activity {
         password.setEnabled(true);
         register.setEnabled(true);
         login.setEnabled(true);
+	    progressBar.setVisibility(View.INVISIBLE);
     }
 }
