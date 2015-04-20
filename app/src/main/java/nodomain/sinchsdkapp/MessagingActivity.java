@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,10 +19,6 @@ import android.widget.ListView;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.TextView;
 
-import com.parse.FindCallback;
-import com.parse.ParseException;
-import com.parse.ParseObject;
-import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.sinch.android.rtc.PushPair;
 import com.sinch.android.rtc.messaging.Message;
@@ -31,30 +26,46 @@ import com.sinch.android.rtc.messaging.MessageClient;
 import com.sinch.android.rtc.messaging.MessageClientListener;
 import com.sinch.android.rtc.messaging.MessageDeliveryInfo;
 import com.sinch.android.rtc.messaging.MessageFailureInfo;
-import com.sinch.android.rtc.messaging.WritableMessage;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class MessagingActivity extends ActionBarActivity implements MessageClientListener{
 
+	// TODO: store messages to parse
+	// TODO: query stored messages
+
+	public static final String EXTRA_CONVERSATION = "Conversation";
+
+	private Conversation conversation;
+
+	private SinchService.SinchServiceBinder sinchServiceBinder;
+	private SinchServiceConnection sinchServiceConnection = new SinchServiceConnection();
+	private class SinchServiceConnection implements ServiceConnection{
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+			sinchServiceBinder = (SinchService.SinchServiceBinder)service;
+			sinchServiceBinder.addMessageClientListener(MessagingActivity.this);
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+			sinchServiceBinder = null;
+		}
+	}
+
     private MessagesAdapter messagesAdapter;
     private class MessagesAdapter extends BaseAdapter{
-
-        public static final int DIRECTION_INCOMING = 0;
-        public static final int DIRECTION_OUTGOING = 1;
-
         private LayoutInflater layoutInflater;
-        private ArrayList<Pair<WritableMessage, Integer>> messages;
+        private ArrayList<InstantMessage> messages;
 
         public MessagesAdapter(Activity activity) {
             layoutInflater = activity.getLayoutInflater();
             messages = new ArrayList<>();
         }
 
-        public void addMessage(WritableMessage message, int direction) {
-            messages.add(new Pair(message, direction));
+        public void addMessage(InstantMessage message) {
+            messages.add(message);
             notifyDataSetChanged();
         }
         @Override
@@ -79,83 +90,74 @@ public class MessagingActivity extends ActionBarActivity implements MessageClien
 
         @Override
         public int getItemViewType(int i) {
-            return messages.get(i).second;
+            InstantMessage message = messages.get(i);
+	        return message.getDirection();
         }
 
         @Override
         public View getView(int i, View convertView, ViewGroup viewGroup) {
-            int direction = getItemViewType(i);
-
+	        int direction = getItemViewType(i);
             if (convertView == null) {
-                int res = 0;
-                if (direction == DIRECTION_INCOMING) {
+	            int res;
+                if (direction == InstantMessage.DIRECTION_IN) {
                     res = R.layout.message_left;
-                } else if (direction == DIRECTION_OUTGOING) {
+                } else {
                     res = R.layout.message_right;
                 }
-                convertView = layoutInflater.inflate(res, viewGroup, false);
+	            // Inflate message view
+	            convertView = layoutInflater.inflate(res, viewGroup, false);
             }
 
-            WritableMessage message = messages.get(i).first;
+	        // Set message sender
+	        InstantMessage message = messages.get(i);
+	        TextView sender = (TextView) convertView.findViewById(R.id.message_sender);
+	        sender.setText(message.getSender().getUsername());
 
-            TextView txtMessage = (TextView) convertView.findViewById(R.id.message_text);
-            txtMessage.setText(message.getTextBody());
+	        // Set message text
+	        TextView text = (TextView) convertView.findViewById(R.id.message_text);
+	        text.setText(message.getText());
+
+	        // Set message date
+	        TextView date = (TextView) convertView.findViewById(R.id.message_date);
+	        date.setText(message.getTimestamp().toString());
 
             return convertView;
         }
     }
 
-    private SinchService.SinchServiceBinder sinchServiceBinder;
-    private SinchServiceConnection sinchServiceConnection = new SinchServiceConnection();
-
-    private String recipientUserId;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         // Bind sinch service
         bindService(new Intent(this, SinchService.class), sinchServiceConnection, BIND_AUTO_CREATE);
+
         // UI
         setContentView(R.layout.activity_messaging);
-        recipientUserId = getIntent().getExtras().getString("userId");
+        conversation = (Conversation) getIntent().getExtras().get(EXTRA_CONVERSATION);
         getSupportActionBar().setDisplayShowHomeEnabled(false);
-        getSupportActionBar().setTitle(recipientUserId);
         getSupportActionBar().setDisplayShowTitleEnabled(true);
+	    getSupportActionBar().setTitle(conversation.getWith().getUsername());
+
         // Messages
-        ListView messages = (ListView) findViewById(R.id.messagingMessages);
+        final ListView messages = (ListView) findViewById(R.id.messagingMessages);
         messagesAdapter = new MessagesAdapter(this);
         messages.setAdapter(messagesAdapter);
-        // Query stored message
-        final String[] userIds = {ParseUser.getCurrentUser().getObjectId(), recipientUserId};
-        ParseQuery<ParseObject> query = ParseQuery.getQuery("ParseMessage");
-        query.whereContainedIn("senderId", Arrays.asList(userIds));
-        query.whereContainedIn("recipientId", Arrays.asList(userIds));
-        query.orderByAscending("createdAt");
-        query.findInBackground(new FindCallback<ParseObject>() {
-            @Override
-            public void done(List<ParseObject> messageList, ParseException e) {
-                if (e == null) {
-                    for (int i = 0; i < messageList.size(); i++) {
-                        WritableMessage message = new WritableMessage(messageList.get(i).get("recipientId").toString(), messageList.get(i).get("messageText").toString());
-                        if (messageList.get(i).get("senderId").toString().equals(userIds[0])) {
-                            messagesAdapter.addMessage(message, MessagesAdapter.DIRECTION_OUTGOING);
-                        } else {
-                            messagesAdapter.addMessage(message, MessagesAdapter.DIRECTION_INCOMING);
-                        }
-                    }
-                }
-            }
-        });
-        // New message
+
+        // New message text field
         final MultiAutoCompleteTextView newMessageText = (MultiAutoCompleteTextView) findViewById(R.id.messagingNewMessage);
+
         // Send button
         Button send = (Button) findViewById(R.id.messagingSend);
         send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                WritableMessage message = new WritableMessage();
-                message.setTextBody(newMessageText.getText().toString());
-                sinchServiceBinder.sendMessage(message, recipientUserId);
+                InstantMessage instantMessage = new InstantMessage(
+		                new User(ParseUser.getCurrentUser()),
+				        conversation.getWith(),
+				        newMessageText.getText().toString(),
+				        null);
+                sinchServiceBinder.sendMessage(instantMessage);
             }
         });
     }
@@ -179,36 +181,24 @@ public class MessagingActivity extends ActionBarActivity implements MessageClien
 
     @Override
     public void onIncomingMessage(MessageClient messageClient, Message message) {
-        if (message.getSenderId().equals(recipientUserId)) {
-            WritableMessage writableMessage = new WritableMessage(message.getRecipientIds().get(0), message.getTextBody());
-            messagesAdapter.addMessage(writableMessage, MessagesAdapter.DIRECTION_INCOMING);
+	    User with = conversation.getWith();
+        if (message.getSenderId().equals(with.getParseID())) {
+	        // If message belongs to this conversation
+	        messagesAdapter.addMessage(new InstantMessage(
+			     with,
+			     new User(ParseUser.getCurrentUser()),
+				 message.getTextBody(),
+				 message.getTimestamp()));
         }
     }
 
     @Override
     public void onMessageSent(MessageClient messageClient, Message message, String s) {
-        // Store message to parse
-        final WritableMessage writableMessage = new WritableMessage(message.getRecipientIds().get(0), message.getTextBody());
-        ParseQuery<ParseObject> query = ParseQuery.getQuery("ParseMessage");
-        query.whereEqualTo("sinchId", message.getMessageId());
-        query.findInBackground(new FindCallback<ParseObject>() {
-            @Override
-            public void done(List<ParseObject> messageList, com.parse.ParseException e) {
-                if (e == null) {
-                    if (messageList.size() == 0) {
-                        ParseObject parseMessage = new ParseObject("ParseMessage");
-                        parseMessage.put("senderId", ParseUser.getCurrentUser().getObjectId());
-                        parseMessage.put("recipientId", writableMessage.getRecipientIds().get(0));
-                        parseMessage.put("messageText", writableMessage.getTextBody());
-                        parseMessage.put("sinchId", writableMessage.getMessageId());
-                        parseMessage.saveInBackground();
-
-                        // Add in messages
-                        messagesAdapter.addMessage(writableMessage, MessagesAdapter.DIRECTION_OUTGOING);
-                    }
-                }
-            }
-        });
+	    messagesAdapter.addMessage(new InstantMessage(
+			    new User(ParseUser.getCurrentUser()),
+			    conversation.getWith(),
+			    message.getTextBody(),
+			    message.getTimestamp()));
     }
 
     @Override
@@ -224,19 +214,6 @@ public class MessagingActivity extends ActionBarActivity implements MessageClien
     @Override
     public void onShouldSendPushData(MessageClient messageClient, Message message, List<PushPair> pushPairs) {
 
-    }
-
-    private class SinchServiceConnection implements ServiceConnection{
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            sinchServiceBinder = (SinchService.SinchServiceBinder)service;
-            sinchServiceBinder.addMessageClientListener(MessagingActivity.this);
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            sinchServiceBinder = null;
-        }
     }
 
     @Override

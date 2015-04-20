@@ -1,22 +1,25 @@
 package nodomain.sinchsdkapp;
 
+import java.io.Serializable;
 
-import com.parse.ParseUser;
+public class Conversation implements Serializable{	// TODO: Change seriealizable to parcelable
 
-public class Conversation {
+    private User with;
 
-    private ParseUser conversationWith;
-
-    public Conversation(ParseUser with){
-        conversationWith = with;
+    public Conversation(User with){
+	    this.with = with;
     }
 
-    public ParseUser ConversationWith(){
-        return conversationWith;
-    }
+	public User getWith() {
+		return with;
+	}
 
-    public ParseUser getConversationWith(){
-        return conversationWith;
-    }
-
+	@Override
+	public boolean equals(Object o) {
+		if(o instanceof  Conversation) {
+			Conversation conversation = (Conversation) o;
+			return with.getParseID().equals(conversation.getWith().getParseID());
+		}
+		else return false;
+	}
 }

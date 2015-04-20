@@ -4,7 +4,6 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.util.Log;
 
 import com.parse.ParseUser;
 import com.sinch.android.rtc.ClientRegistration;
@@ -17,15 +16,33 @@ import com.sinch.android.rtc.messaging.MessageClientListener;
 import com.sinch.android.rtc.messaging.WritableMessage;
 
 public class SinchService extends Service implements SinchClientListener {
+	private static final String APP_KEY = "daa17844-88fb-449b-834d-086d80722fa5";
+	private static final String APP_SECRET = "kVbvjPoR+EyZys89DWp1KA==";
+	private static final String ENVIRONMENT = "sandbox.sinch.com"; // TODO: switch to release
 
     private SinchClient sinchClient;
+
+	private final IBinder sinchServiceBinder = new SinchServiceBinder();
+	public class SinchServiceBinder extends Binder{
+		public void sendMessage(InstantMessage message){
+			MessageClient messageClient = sinchClient.getMessageClient();
+			messageClient.send(new WritableMessage(
+					message.getReceiver().getParseID(),
+					message.getText()));
+		}
+
+		public void addMessageClientListener(MessageClientListener messageClientListener){
+			sinchClient.getMessageClient().addMessageClientListener(messageClientListener);
+		}
+
+		public void removeMessageClientListener(MessageClientListener messageClientListener){
+			sinchClient.getMessageClient().removeMessageClientListener(messageClientListener);
+		}
+	}
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // Start Sinch client
-        final String APP_KEY = "daa17844-88fb-449b-834d-086d80722fa5";
-        final String APP_SECRET = "kVbvjPoR+EyZys89DWp1KA==";
-        final String ENVIRONMENT = "sandbox.sinch.com";
         sinchClient = Sinch.getSinchClientBuilder()
                 .context(this)
                 .userId(ParseUser.getCurrentUser().getObjectId())
@@ -42,12 +59,9 @@ public class SinchService extends Service implements SinchClientListener {
         return super.onStartCommand(intent, flags, startId);
     }
 
-    private final IBinder sinchServiceBinder = new SinchServiceBinder();
-
     @Override
     public void onClientStarted(SinchClient sinchClient) {
         sinchClient.startListeningOnActiveConnection();
-        Log.i("Debug","Started");
     }
 
     @Override
@@ -70,29 +84,12 @@ public class SinchService extends Service implements SinchClientListener {
 
     }
 
-    public class SinchServiceBinder extends Binder{
-        public void sendMessage(WritableMessage message, String recipientUserId){
-            MessageClient messageClient = sinchClient.getMessageClient();
-            message.addRecipient(recipientUserId);
-            messageClient.send(message);
-            Log.i("Debug","binder send message");
-        }
-
-        public void addMessageClientListener(MessageClientListener messageClientListener){
-            sinchClient.getMessageClient().addMessageClientListener(messageClientListener);
-        }
-
-        public void removeMessageClientListener(MessageClientListener messageClientListener){
-            sinchClient.getMessageClient().removeMessageClientListener(messageClientListener);
-        }
-    }
-
     @Override
     public IBinder onBind(Intent intent) {
         return sinchServiceBinder;
     }
 
-    @Override
+	@Override
     public void onDestroy() {
         sinchClient.stopListeningOnActiveConnection();
         sinchClient.terminate();

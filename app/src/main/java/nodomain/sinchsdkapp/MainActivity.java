@@ -29,13 +29,13 @@ public class MainActivity extends ActionBarActivity implements ContactsFragment.
             conversationsFragment = new ConversationsFragment();
             contactsFragment = new ContactsFragment();
         }
-
-        // Start sinch service
-        startService(new Intent(this, SinchService.class));
     }
 
     @Override
     protected void onStart() {
+	    // Start sinch service
+	    startService(new Intent(this, SinchService.class));
+
         switchToConversations();
         super.onStart();
     }
@@ -100,17 +100,14 @@ public class MainActivity extends ActionBarActivity implements ContactsFragment.
     }
 
     @Override
-    public void newConversation(ParseUser with) {
-        Conversation newConversation = new Conversation(with);
-        conversationsFragment.addConversation(newConversation);
-
-        openConversation(newConversation);
+    public void startConversation(User with) {
+	    conversationsFragment.startConversation(with);
     }
 
     @Override
     public void openConversation(Conversation conversation) {
         Intent messagingActivity = new Intent(this, MessagingActivity.class);
-        messagingActivity.putExtra("userId", conversation.getConversationWith().getObjectId());
+        messagingActivity.putExtra(MessagingActivity.EXTRA_CONVERSATION, conversation);
         startActivity(messagingActivity);
     }
 }

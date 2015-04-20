@@ -34,8 +34,7 @@
             android:uiOptions="splitActionBarWhenNarrow" >
         </activity>
         <activity
-            android:name=".MessagingActivity"
-            android:label="@string/title_activity_messaging" >
+            android:name=".MessagingActivity">
         </activity>
 
         <service

@@ -2,7 +2,7 @@ package nodomain.sinchsdkapp;
 
 
 import android.app.Activity;
-import android.app.ListFragment;
+import android.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,7 +12,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
@@ -21,16 +20,14 @@ import com.parse.ParseUser;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ContactsFragment extends ListFragment {
+public class ContactsFragment extends Fragment {
 
     private Listener listener;
 
-    public interface Listener{
-        public void newConversation(ParseUser with);
-    }
+	private ListView contactsList;
 
-    public ContactsFragment() {
-        // Required empty public constructor
+    public interface Listener{
+        public void startConversation(User with);
     }
 
     @Override
@@ -48,6 +45,7 @@ public class ContactsFragment extends ListFragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+	    contactsList = (ListView) view.findViewById(R.id.contactsContactsList);
         populateList();
     }
 
@@ -64,17 +62,18 @@ public class ContactsFragment extends ListFragment {
                         names.add(user.getUsername());
                     }
 
-                    ListView listView = getListView();
                     final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
                             getActivity().getApplicationContext(),
                             R.layout.contact_layout,
                             names);
-                    listView.setAdapter(arrayAdapter);
+                    contactsList.setAdapter(arrayAdapter);
 
-                    listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    contactsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                            listener.newConversation(parseUsers.get(position));
+	                        ParseUser parseUser = parseUsers.get(position);
+	                        User user = new User(parseUser);
+                            listener.startConversation(user);
                         }
                     });
 
