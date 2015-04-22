@@ -27,7 +27,7 @@ public class ContactsFragment extends Fragment {
 	private ListView contactsList;
 
     public interface Listener{
-        public void startConversation(User with);
+        public void startConversation(ParseUser with);
     }
 
     @Override
@@ -72,8 +72,7 @@ public class ContactsFragment extends Fragment {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 	                        ParseUser parseUser = parseUsers.get(position);
-	                        User user = new User(parseUser);
-                            listener.startConversation(user);
+                            listener.startConversation(parseUser);
                         }
                     });
 

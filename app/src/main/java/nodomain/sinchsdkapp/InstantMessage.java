@@ -1,49 +1,63 @@
 package nodomain.sinchsdkapp;
 
 
+import com.parse.ParseClassName;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
 import java.util.Date;
 
-public class InstantMessage {
+
+@ParseClassName("InstantMessage")
+public class InstantMessage extends ParseObject{
 
 	public static final int DIRECTION_IN = 0;
 	public static final int DIRECTION_OUT = 1;
 
-	private User sender;
-	private User receiver;
-
-	private String text;
-	private Date timestamp;
-
-	public InstantMessage(User sender, User receiver, String text, Date timestamp){
-		this.sender = sender;
-		this.receiver = receiver;
-		this.text = text;
-		this.timestamp = timestamp;
+	public InstantMessage(){
+		// Default
 	}
 
-	public int getDirection() {
-		if(sender.getParseID().equals(ParseUser.getCurrentUser().getObjectId())){
-			return DIRECTION_OUT;
-		} else{
+	public void setRecipient(ParseUser recipient){
+		put("recipient", recipient);
+	}
+
+	public ParseUser getRecipient(){
+		return getParseUser("recipient");
+	}
+
+	public int getDirection(){
+		if(getRecipient().getObjectId() == ParseUser.getCurrentUser().getObjectId()){
 			return DIRECTION_IN;
-		}
+		}else return DIRECTION_OUT;
 	}
 
-	public User getSender() {
-		return sender;
+	public static ParseQuery<InstantMessage> getQuery() {
+		return ParseQuery.getQuery(InstantMessage.class);
 	}
 
-	public String getText() {
-		return text;
+	public void setTimestamp(Date timestamp){
+		put("timestamp", timestamp);
 	}
 
 	public Date getTimestamp() {
-		return timestamp;
+		return getDate("timestamp");
 	}
 
-	public User getReceiver() {
-		return receiver;
+	public void setText(String text){
+		put("text", text);
+	}
+
+	public String getText() {
+		return getString("text");
+	}
+
+	public void setSender(ParseUser sender){
+		put("sender", sender);
+	}
+
+	public ParseUser getSender() {
+		return getParseUser("sender");
 	}
 }

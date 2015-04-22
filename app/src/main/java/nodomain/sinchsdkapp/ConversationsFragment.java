@@ -3,45 +3,90 @@ package nodomain.sinchsdkapp;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
-import java.util.ArrayList;
+import com.parse.GetCallback;
+import com.parse.ParseException;
+import com.parse.ParseQuery;
+import com.parse.ParseQueryAdapter;
+import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 
 public class ConversationsFragment extends Fragment {
 
-    private Listener listener;
-	public interface Listener{
-		public void openConversation(Conversation conversation);
-	}
-
 	private ListView conversationsList;
 
-	private StoredConversations storedConversations;
+    private Listener listener;
+	public interface Listener{
+		public void openConversation(String conversationUUID);
+	}
+
+	class ConversationsListAdapter extends ParseQueryAdapter<Conversation>{
+
+		public ConversationsListAdapter(Context context, ParseQueryAdapter.QueryFactory<Conversation> queryFactory){
+			super(context, queryFactory);
+		}
+
+		@Override
+		public View getItemView(Conversation conversation, View view, ViewGroup parent) {
+			TextView contactName;
+			if(view == null){
+				view = getActivity().getLayoutInflater().inflate(R.layout.contact_layout, parent, false);
+			}
+			// Set contact name
+			contactName = (TextView) view.findViewById(R.id.contactName);
+			ParseUser parseUser = conversation.getRecipient();
+			try {
+				parseUser.fetchIfNeeded();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			contactName.setText(parseUser.getUsername());
+			return view;
+		}
+	}
 
 	public ConversationsFragment(){
 		// Default
 	}
 
-	public void startConversation(User with) {
-		Conversation newConversation = new Conversation(with);
+	public void startConversation(final ParseUser with) {
+		ParseQuery<Conversation> query = Conversation.getQuery();
+		query.fromLocalDatastore();
+		query.whereEqualTo("recipient", with);
+		query.getFirstInBackground(new GetCallback<Conversation>() {
+			@Override
+			public void done(Conversation c, ParseException e) {
+				if (c != null) {
+					listener.openConversation(c.getUUID());
+				} else {
+					// Create new conversation
+					final Conversation conversation = new Conversation();
+					conversation.setRecipient(with);
+					conversation.setUUID();
 
-		storedConversations.addConversation(newConversation);
-
-		listener.openConversation(newConversation);
+					conversation.pinInBackground(new SaveCallback() {
+						@Override
+						public void done(ParseException e) {
+							listener.openConversation(conversation.getUUID());
+						}
+					});
+				}
+			}
+		});
 	}
 
     @Override
     public void onAttach(Activity activity) {
         listener = (Listener) activity;
-	    storedConversations = new StoredConversations(activity.getApplicationContext());
-	    storedConversations.load();
         super.onAttach(activity);
     }
 
@@ -55,33 +100,32 @@ public class ConversationsFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 	    conversationsList = (ListView) view.findViewById(R.id.conversationsConversationsList);
-        populateList();
+        initList();
     }
 
-
-    private void populateList(){
-        final ArrayList<String> names = new ArrayList<>();
-        for(Conversation conversation : storedConversations.getConversations()){
-            names.add(conversation.getWith().getUsername());
-        }
-
-        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
-                getActivity().getApplicationContext(),
-                R.layout.contact_layout,
-                names);
-        conversationsList.setAdapter(arrayAdapter);
-
-        conversationsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+    private void initList(){
+        ParseQueryAdapter.QueryFactory<Conversation> factory = new ParseQueryAdapter.QueryFactory<Conversation>() {
 	        @Override
-	        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		        listener.openConversation(storedConversations.getConversations().get(position));
+	        public ParseQuery<Conversation> create() {
+		        ParseQuery<Conversation> query = Conversation.getQuery();
+		        query.fromLocalDatastore();
+		        return query;
 	        }
-        });
+        };
+
+	    conversationsList.setAdapter(new ConversationsListAdapter(getActivity().getApplicationContext(), factory));
+
+	    conversationsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+		    @Override
+		    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+			    Conversation conversation = (Conversation) conversationsList.getAdapter().getItem(position);
+			    listener.openConversation(conversation.getUUID());
+		    }
+	    });
     }
 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		storedConversations.save();
 	}
 }

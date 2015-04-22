@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.parse.ParseUser;
 import com.sinch.android.rtc.ClientRegistration;
@@ -22,12 +23,11 @@ public class SinchService extends Service implements SinchClientListener {
 
     private SinchClient sinchClient;
 
-	private final IBinder sinchServiceBinder = new SinchServiceBinder();
 	public class SinchServiceBinder extends Binder{
 		public void sendMessage(InstantMessage message){
 			MessageClient messageClient = sinchClient.getMessageClient();
 			messageClient.send(new WritableMessage(
-					message.getReceiver().getParseID(),
+					message.getRecipient().getObjectId(),
 					message.getText()));
 		}
 
@@ -43,19 +43,20 @@ public class SinchService extends Service implements SinchClientListener {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // Start Sinch client
-        sinchClient = Sinch.getSinchClientBuilder()
-                .context(this)
-                .userId(ParseUser.getCurrentUser().getObjectId())
-                .applicationKey(APP_KEY)
-                .applicationSecret(APP_SECRET)
-                .environmentHost(ENVIRONMENT)
-                .build();
-        sinchClient.addSinchClientListener(this);
-        sinchClient.setSupportMessaging(true);
-        sinchClient.setSupportActiveConnectionInBackground(true);
-        sinchClient.checkManifest();
-        sinchClient.start();
-
+	    if (sinchClient == null) {
+		    sinchClient = Sinch.getSinchClientBuilder()
+				    .context(this)
+				    .userId(ParseUser.getCurrentUser().getObjectId())
+				    .applicationKey(APP_KEY)
+				    .applicationSecret(APP_SECRET)
+				    .environmentHost(ENVIRONMENT)
+				    .build();
+		    sinchClient.addSinchClientListener(this);
+		    sinchClient.setSupportMessaging(true);
+		    sinchClient.setSupportActiveConnectionInBackground(true);
+		    sinchClient.checkManifest();
+		    sinchClient.start();
+	    }
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -81,12 +82,12 @@ public class SinchService extends Service implements SinchClientListener {
 
     @Override
     public void onLogMessage(int i, String s, String s2) {
-
+		Log.d("",s + s2);
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        return sinchServiceBinder;
+        return new SinchServiceBinder();
     }
 
 	@Override

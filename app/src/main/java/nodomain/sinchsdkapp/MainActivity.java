@@ -4,6 +4,7 @@ import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -100,14 +101,14 @@ public class MainActivity extends ActionBarActivity implements ContactsFragment.
     }
 
     @Override
-    public void startConversation(User with) {
+    public void startConversation(ParseUser with) {
 	    conversationsFragment.startConversation(with);
     }
 
     @Override
-    public void openConversation(Conversation conversation) {
+    public void openConversation(String conversationUUID) {
         Intent messagingActivity = new Intent(this, MessagingActivity.class);
-        messagingActivity.putExtra(MessagingActivity.EXTRA_CONVERSATION, conversation);
+        messagingActivity.putExtra(MessagingActivity.EXTRA_CONVERSATION_UUID, conversationUUID);
         startActivity(messagingActivity);
     }
 }

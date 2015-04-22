@@ -12,23 +12,20 @@ import android.widget.Toast;
 import com.parse.LogInCallback;
 import com.parse.Parse;
 import com.parse.ParseException;
+import com.parse.ParseObject;
 import com.parse.ParseUser;
 import com.parse.SignUpCallback;
 
 public class LoginActivity extends Activity {
 
-    final String appId = "3WH140Acsg0sxhNwW6M7VAquFDt5cGIoiGTM4vrx";
-    final String clientId = "JqB6tbysttwheTfONJSiOHdn7Lgo0YRguBIrDEbD";
-
-    EditText username;
-    EditText password;
-    Button register;
-    Button login;
-	ProgressBar progressBar;
+    private EditText username;
+    private EditText password;
+    private Button register;
+    private Button login;
+	private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        initializeParse();
         if(ParseUser.getCurrentUser() != null){
             start();
         }
@@ -55,10 +52,6 @@ public class LoginActivity extends Activity {
 	    progressBar = (ProgressBar) findViewById(R.id.progressBar);
 	    progressBar.setVisibility(View.INVISIBLE);
 
-    }
-
-    private void initializeParse(){
-        Parse.initialize(this, appId, clientId);
     }
 
     private void login(){
