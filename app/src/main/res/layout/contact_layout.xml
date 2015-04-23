@@ -4,4 +4,7 @@
     android:layout_height="wrap_content"
     android:textAppearance="?android:attr/textAppearanceLarge"
     android:id="@+id/contactName"
-    android:textColor="#ff000000" />
+    android:textColor="#ff000000"
+    android:text="Name"
+    android:textSize="@dimen/abc_text_size_display_1_material"
+    android:textIsSelectable="false"/>

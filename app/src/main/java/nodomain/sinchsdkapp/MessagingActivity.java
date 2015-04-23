@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.MultiAutoCompleteTextView;
@@ -30,8 +31,12 @@ import com.sinch.android.rtc.messaging.MessageClientListener;
 import com.sinch.android.rtc.messaging.MessageDeliveryInfo;
 import com.sinch.android.rtc.messaging.MessageFailureInfo;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class MessagingActivity extends ActionBarActivity implements MessageClientListener{
 
@@ -40,6 +45,8 @@ public class MessagingActivity extends ActionBarActivity implements MessageClien
 	private ListView messagesList;
 
 	private Conversation conversation;
+
+	private SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yy HH:mm:ss");
 
 	private SinchService.SinchServiceBinder sinchServiceBinder;
 	private SinchServiceConnection sinchServiceConnection;
@@ -85,9 +92,10 @@ public class MessagingActivity extends ActionBarActivity implements MessageClien
 			TextView text = (TextView) view.findViewById(R.id.message_text);
 			text.setText(instantMessage.getText());
 
-			// Set message date
+			// Set message timestamp
 			TextView date = (TextView) view.findViewById(R.id.message_date);
-			date.setText(instantMessage.getTimestamp().toString());
+			String timestamp = dateFormat.format(instantMessage.getTimestamp());
+			date.setText(timestamp);
 
 			return view;
 		}
@@ -133,6 +141,9 @@ public class MessagingActivity extends ActionBarActivity implements MessageClien
 					    instantMessage.setSender(ParseUser.getCurrentUser());
 					    instantMessage.setText(newMessageText.getText().toString());
 					    instantMessage.setTimestamp(new Date());
+
+					    newMessageText.getText().clear();
+
 					    sinchServiceBinder.sendMessage(instantMessage);
 				    }
 			    });
@@ -152,6 +163,8 @@ public class MessagingActivity extends ActionBarActivity implements MessageClien
 		};
 
 		messagesListAdapter = new MessagesListAdapter(getApplicationContext(), factory);
+		messagesListAdapter.setPaginationEnabled(false);
+
 		messagesList.setAdapter(messagesListAdapter);
 	}
 
@@ -186,7 +199,7 @@ public class MessagingActivity extends ActionBarActivity implements MessageClien
 		    instantMessage.pinInBackground(new SaveCallback() {
 			    @Override
 			    public void done(ParseException e) {
-				    messagesListAdapter.loadObjects();
+					messagesListAdapter.loadObjects();
 			    }
 		    });
 	    }
@@ -203,7 +216,7 @@ public class MessagingActivity extends ActionBarActivity implements MessageClien
 	    instantMessage.pinInBackground(new SaveCallback() {
 		    @Override
 		    public void done(ParseException e) {
-			    messagesListAdapter.loadObjects();
+				messagesListAdapter.loadObjects();
 		    }
 	    });
     }
