@@ -170,7 +170,7 @@ public class MessagingActivity extends ActionBarActivity implements MessageClien
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_messaging, menu);
+        //getMenuInflater().inflate(R.menu.menu_messaging, menu);
         return true;
     }
 

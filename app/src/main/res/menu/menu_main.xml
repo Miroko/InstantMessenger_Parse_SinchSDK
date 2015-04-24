@@ -3,10 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="nodomain.sinchsdkapp.MainActivity">
 
-    <item android:id="@+id/action_conversations" android:title="@string/action_conversations"
-        app:showAsAction="always|withText"/>
-    <item android:id="@+id/action_contacts" android:title="@string/action_contacts"
-        app:showAsAction="always|withText"/>
     <item android:id="@+id/action_signout" android:title="@string/action_signout"
         app:showAsAction="never"/>
 

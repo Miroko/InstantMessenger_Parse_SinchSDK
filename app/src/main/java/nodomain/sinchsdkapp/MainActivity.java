@@ -1,10 +1,13 @@
 package nodomain.sinchsdkapp;
 
-import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -14,8 +17,31 @@ import com.parse.ParseUser;
 
 public class MainActivity extends ActionBarActivity implements ContactsFragment.Listener, ConversationsFragment.Listener {
 
-    private ConversationsFragment conversationsFragment;
-    private ContactsFragment contactsFragment;
+	private ViewPager viewPager;
+
+	private ConversationsFragment conversationsFragment;
+	private ContactsFragment contactsFragment;
+
+	private CustomFragmentPagerAdapter customFragmentPagerAdapter;
+	private class CustomFragmentPagerAdapter extends FragmentPagerAdapter{
+		public CustomFragmentPagerAdapter(FragmentManager fm) {
+			super(fm);
+		}
+
+		@Override
+		public Fragment getItem(int position) {
+			switch (position){
+				case 0: return conversationsFragment;
+				case 1: return contactsFragment;
+			}
+			return null;
+		}
+
+		@Override
+		public int getCount() {
+			return 2;
+		}
+	}
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,13 +49,66 @@ public class MainActivity extends ActionBarActivity implements ContactsFragment.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getSupportActionBar().setDisplayShowHomeEnabled(false);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        getSupportActionBar().setDisplayShowTitleEnabled(true);
 
-        // Fragments
-        if(savedInstanceState == null) {
-            conversationsFragment = new ConversationsFragment();
-            contactsFragment = new ContactsFragment();
-        }
+	    // Fragments
+	    conversationsFragment = new ConversationsFragment();
+	    contactsFragment = new ContactsFragment();
+	    customFragmentPagerAdapter = new CustomFragmentPagerAdapter(getSupportFragmentManager());
+
+	    // Pager
+	    viewPager = (ViewPager) findViewById(R.id.main_pager);
+		viewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener(){
+			@Override
+			public void onPageSelected(int position) {
+				getSupportActionBar().setSelectedNavigationItem(position);
+			}
+		});
+	    viewPager.setAdapter(customFragmentPagerAdapter);
+
+	    // Action bar tabs
+	    ActionBar actionBar = getSupportActionBar();
+	    actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+
+	    // Conversations tab
+	    actionBar.addTab(actionBar.newTab()
+			    .setText(R.string.action_conversations)
+			    .setTabListener(new ActionBar.TabListener() {
+				    @Override
+				    public void onTabSelected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction fragmentTransaction) {
+					    viewPager.setCurrentItem(tab.getPosition());
+				    }
+
+				    @Override
+				    public void onTabUnselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction fragmentTransaction) {
+
+				    }
+
+				    @Override
+				    public void onTabReselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction fragmentTransaction) {
+
+				    }
+			    }));
+
+	    // Contacts tab
+	    actionBar.addTab(actionBar.newTab()
+			    .setText(R.string.action_contacts)
+			    .setTabListener(new ActionBar.TabListener() {
+				    @Override
+				    public void onTabSelected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction fragmentTransaction) {
+					    viewPager.setCurrentItem(tab.getPosition());
+				    }
+
+				    @Override
+				    public void onTabUnselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction fragmentTransaction) {
+
+				    }
+
+				    @Override
+				    public void onTabReselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction fragmentTransaction) {
+
+				    }
+			    }));
     }
 
     @Override
@@ -37,7 +116,7 @@ public class MainActivity extends ActionBarActivity implements ContactsFragment.
 	    // Start sinch service
 	    startService(new Intent(this, SinchService.class));
 
-        switchToConversations();
+       // switchToConversations();
         super.onStart();
     }
 
@@ -51,15 +130,7 @@ public class MainActivity extends ActionBarActivity implements ContactsFragment.
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if(id == R.id.action_conversations){
-            switchToConversations();
-            return true;
-        }
-        else if(id == R.id.action_contacts){
-            switchToContacts();
-            return true;
-        }
-        else if(id == R.id.action_signout){
+		if(id == R.id.action_signout){
             logOut();
             return true;
         }
@@ -84,20 +155,6 @@ public class MainActivity extends ActionBarActivity implements ContactsFragment.
             }
         };
         ParseUser.logOutInBackground(logOutCallback);
-    }
-
-    public void switchToConversations(){
-        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-        fragmentTransaction.replace(R.id.mainFragmentContainer, conversationsFragment);
-        fragmentTransaction.addToBackStack(null);
-        fragmentTransaction.commit();
-    }
-
-    private void switchToContacts(){
-        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-        fragmentTransaction.replace(R.id.mainFragmentContainer, contactsFragment);
-        fragmentTransaction.addToBackStack(null);
-        fragmentTransaction.commit();
     }
 
     @Override
