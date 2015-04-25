@@ -141,6 +141,7 @@ public class MessagingActivity extends ActionBarActivity implements MessageClien
 					    instantMessage.setSender(ParseUser.getCurrentUser());
 					    instantMessage.setText(newMessageText.getText().toString());
 					    instantMessage.setTimestamp(new Date());
+					    instantMessage.setConversation(conversation);
 
 					    newMessageText.getText().clear();
 
@@ -169,23 +170,6 @@ public class MessagingActivity extends ActionBarActivity implements MessageClien
 	}
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        //getMenuInflater().inflate(R.menu.menu_messaging, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
     public void onIncomingMessage(MessageClient messageClient, Message message) {
 	    ParseUser conversationRecipient = conversation.getRecipient();
 	    if(message.getSenderId().equals(conversationRecipient.getObjectId())){
@@ -195,6 +179,7 @@ public class MessagingActivity extends ActionBarActivity implements MessageClien
 		    instantMessage.setSender(conversationRecipient);
 		    instantMessage.setText(message.getTextBody());
 		    instantMessage.setTimestamp(message.getTimestamp());
+		    instantMessage.setConversation(conversation);
 
 		    instantMessage.pinInBackground(new SaveCallback() {
 			    @Override
@@ -212,6 +197,7 @@ public class MessagingActivity extends ActionBarActivity implements MessageClien
 	    instantMessage.setSender(ParseUser.getCurrentUser());
 	    instantMessage.setText(message.getTextBody());
 	    instantMessage.setTimestamp(message.getTimestamp());
+		instantMessage.setConversation(conversation);
 
 	    instantMessage.pinInBackground(new SaveCallback() {
 		    @Override

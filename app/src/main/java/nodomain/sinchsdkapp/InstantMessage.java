@@ -37,6 +37,14 @@ public class InstantMessage extends ParseObject{
 		return ParseQuery.getQuery(InstantMessage.class);
 	}
 
+	public void setConversation(Conversation conversation){
+		put("conversation", conversation);
+	}
+
+	public Conversation getConversation(){
+		return (Conversation) get("conversation");
+	}
+
 	public void setTimestamp(Date timestamp){
 		put("timestamp", timestamp);
 	}

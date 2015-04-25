@@ -1,20 +1,21 @@
 <resources>
     <string name="app_name">Instant Messenger</string>
 
-    <string name="action_messaging">Messaging</string>
-    <string name="action_conversations">Conversations</string>
-    <string name="action_contacts">Contacts</string>
-
-    <string name="action_settings">Settings</string>
-
-    // Menu
-    <string name="action_signout">Sign out</string>
-
     // Login
     <string name="login_button">Login</string>
     <string name="register_button">Register</string>
     <string name="login_field_title">Username</string>
     <string name="password_field_title">Password</string>
-    <string name="title_activity_contacts_find">ContactsFindActivity</string>
+
+    // Main
+    // Action bar tabs
+    <string name="action_conversations">Conversations</string>
+    <string name="action_contacts">Contacts</string>
+    // Menu
+    <string name="action_signout">Sign out</string>
+
+    // Conversations
+    // Context menu
+    <string name="action_delete_conversation">Delete</string>
 
 </resources>

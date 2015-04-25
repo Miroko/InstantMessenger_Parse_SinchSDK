@@ -17,13 +17,13 @@ import com.parse.ParseUser;
 
 public class MainActivity extends ActionBarActivity implements ContactsFragment.Listener, ConversationsFragment.Listener {
 
-	private ViewPager viewPager;
+	public ViewPager viewPager;
 
 	private ConversationsFragment conversationsFragment;
 	private ContactsFragment contactsFragment;
 
 	private CustomFragmentPagerAdapter customFragmentPagerAdapter;
-	private class CustomFragmentPagerAdapter extends FragmentPagerAdapter{
+	private class CustomFragmentPagerAdapter extends FragmentPagerAdapter {
 		public CustomFragmentPagerAdapter(FragmentManager fm) {
 			super(fm);
 		}
