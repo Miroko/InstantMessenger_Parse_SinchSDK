@@ -73,16 +73,15 @@ public class MessagingActivity extends ActionBarActivity implements MessageClien
 		@Override
 		public View getItemView(InstantMessage instantMessage, View view, ViewGroup parent) {
 			int direction = instantMessage.getDirection();
-			if (view == null) {
-				int res;
-				if (direction == InstantMessage.DIRECTION_IN) {
-					res = R.layout.message_left;
-				} else {
-					res = R.layout.message_right;
-				}
-				// Inflate message view
-				view = getLayoutInflater().inflate(res, parent, false);
+
+			int res;
+			if (direction == InstantMessage.DIRECTION_IN) {
+				res = R.layout.message_left;
+			} else {
+				res = R.layout.message_right;
 			}
+			// Inflate message view
+			view = getLayoutInflater().inflate(res, parent, false);
 
 			// Set message sender
 			TextView sender = (TextView) view.findViewById(R.id.message_sender);
@@ -112,7 +111,7 @@ public class MessagingActivity extends ActionBarActivity implements MessageClien
 		// Load stored conversation
 	    ParseQuery<Conversation> query = Conversation.getQuery();
 	    query.fromLocalDatastore();
-	    query.whereEqualTo("uuid", getIntent().getExtras().get(EXTRA_CONVERSATION_UUID));
+	    query.whereEqualTo("uuid", getIntent().getExtras().getString(EXTRA_CONVERSATION_UUID));
 	    query.getFirstInBackground(new GetCallback<Conversation>() {
 		    @Override
 		    public void done(Conversation c, ParseException e) {
@@ -140,7 +139,6 @@ public class MessagingActivity extends ActionBarActivity implements MessageClien
 					    instantMessage.setRecipient(conversation.getRecipient());
 					    instantMessage.setSender(ParseUser.getCurrentUser());
 					    instantMessage.setText(newMessageText.getText().toString());
-					    instantMessage.setTimestamp(new Date());
 					    instantMessage.setConversation(conversation);
 
 					    newMessageText.getText().clear();
@@ -157,7 +155,7 @@ public class MessagingActivity extends ActionBarActivity implements MessageClien
 			@Override
 			public ParseQuery<InstantMessage> create() {
 				ParseQuery<InstantMessage> query = InstantMessage.getQuery();
-				query.whereEqualTo("recipient", conversation.getRecipient());
+				query.whereEqualTo("conversation", conversation);
 				query.fromLocalDatastore();
 				return query;
 			}

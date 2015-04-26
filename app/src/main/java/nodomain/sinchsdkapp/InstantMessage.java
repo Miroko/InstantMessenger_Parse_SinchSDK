@@ -28,9 +28,9 @@ public class InstantMessage extends ParseObject{
 	}
 
 	public int getDirection(){
-		if(getRecipient().getObjectId() == ParseUser.getCurrentUser().getObjectId()){
-			return DIRECTION_IN;
-		}else return DIRECTION_OUT;
+		if(getSender().getObjectId().equals(ParseUser.getCurrentUser().getObjectId())){
+			return DIRECTION_OUT;
+		}else return DIRECTION_IN;
 	}
 
 	public static ParseQuery<InstantMessage> getQuery() {
