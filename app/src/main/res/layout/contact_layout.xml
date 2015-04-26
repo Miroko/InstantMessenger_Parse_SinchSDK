@@ -1,10 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:textAppearance="?android:attr/textAppearanceLarge"
-    android:id="@+id/contactName"
-    android:textColor="#ff000000"
-    android:text="Name"
-    android:textSize="@dimen/abc_text_size_display_1_material"
-    android:textIsSelectable="false"/>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:id="@+id/contactImage"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:src="@mipmap/ic_launcher"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="FirstName LastName"
+        android:id="@+id/contactNameText"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/contactImage"
+        android:layout_toEndOf="@+id/contactImage"
+        android:layout_marginTop="24dp"
+        android:layout_marginLeft="12dp"/>
+</RelativeLayout>

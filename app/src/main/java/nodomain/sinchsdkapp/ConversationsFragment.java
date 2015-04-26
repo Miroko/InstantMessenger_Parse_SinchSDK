@@ -50,7 +50,7 @@ public class ConversationsFragment extends Fragment {
 				view = getActivity().getLayoutInflater().inflate(R.layout.contact_layout, parent, false);
 			}
 			// Set contact name
-			contactName = (TextView) view.findViewById(R.id.contactName);
+			contactName = (TextView) view.findViewById(R.id.contactNameText);
 			ParseUser parseUser = conversation.getRecipient();
 			try {
 				parseUser.fetchIfNeeded();

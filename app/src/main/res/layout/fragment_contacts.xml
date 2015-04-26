@@ -9,8 +9,6 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_alignParentBottom="true"
-        android:smoothScrollbar="false"
-        android:stackFromBottom="false"/>
+        android:layout_alignParentBottom="true"/>
 </RelativeLayout>
 
